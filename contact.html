@@ -77,7 +77,12 @@
 
         <div class="contact-form-section">
             <h2>Send Us a Message</h2>
-            <form class="contact-form">
+            <form class="contact-form" id="contactForm" action="https://api.web3forms.com/submit" method="POST">
+                <input type="hidden" name="access_key" value="e66abfe8-01cd-4cc7-9c21-8e2a334e2f1e">
+                <input type="hidden" name="subject" value="New Message from Homely Bites Website">
+                <input type="hidden" name="from_name" value="Homely Bites Website">
+                <input type="checkbox" name="botcheck" style="display: none;">
+                <div id="formResponse"></div>
                 <div class="form-group">
                     <label for="name">Your Name</label>
                     <input type="text" id="name" name="name" placeholder="Enter your name" required>
@@ -156,6 +161,47 @@
         
         hamburger.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+        });
+
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const responseDiv = document.getElementById('formResponse');
+            const submitBtn = form.querySelector('.submit-btn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            responseDiv.innerHTML = '';
+            responseDiv.className = '';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const inquiryType = document.getElementById('type');
+                    const typeText = inquiryType.options[inquiryType.selectedIndex].text;
+                    responseDiv.innerHTML = `Thank you! Your message has been sent successfully.<br><strong>Type:</strong> ${typeText}<br>We'll get back to you soon.`;
+                    responseDiv.className = 'form-success';
+                    form.reset();
+                } else {
+                    const data = await response.json();
+                    responseDiv.innerHTML = data.error || 'An error occurred. Please try again.';
+                    responseDiv.className = 'form-error';
+                }
+            } catch (err) {
+                responseDiv.innerHTML = 'An error occurred. Please try again.';
+                responseDiv.className = 'form-error';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            }
         });
     </script>
 </body>
